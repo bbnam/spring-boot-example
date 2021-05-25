@@ -32,4 +32,10 @@ public class GetUserController {
         userService.update_user(user);
         return userService.findAll();
     }
+
+    @PostMapping("/SignUp")
+    public String signUp(@RequestBody User user){
+        userService.signup(user);
+        return "Đăng ký thành công";
+    }
 }

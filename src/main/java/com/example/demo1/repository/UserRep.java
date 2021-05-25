@@ -7,6 +7,7 @@ import java.util.List;
 public interface UserRep {
     List<User> findAll();
     int update(User user);
+    int signup(User user);
     }
 
 

@@ -15,11 +15,16 @@ public class UserImplements implements UserRep {
 
     @Override
     public List<User> findAll(){
-        return jdbcTemplate.query("select * from user", (rs, rowNum) -> new User(rs.getString("username"), rs.getString("email")));
+        return jdbcTemplate.query("select * from user", (rs, rowNum) -> new User(rs.getString("username"), rs.getString("email"), rs.getInt("id")));
     }
 
     @Override
     public int update(User user) {
-        return jdbcTemplate.update("UPDATE `mydb`.`user` SET `email` = ?, `password` = ? WHERE (`username` = ?);", user.getEmail(), user.getPassword(), user.getUsername());
+        return jdbcTemplate.update("UPDATE user SET email = ?, password = ? WHERE (username = ?);", user.getEmail(), user.getPassword(), user.getUsername());
+    }
+
+    @Override
+    public int signup(User user){
+        return jdbcTemplate.update("INSERT INTO `mydb`.`user`(username , password, email) " + "VALUES(?,?,?);", user.getUsername(), user.getPassword(), user.getEmail());
     }
 }

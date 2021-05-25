@@ -20,5 +20,8 @@ public class UserService {
     public void update_user(User user){
         userRep.update(user);
     }
+    public void signup(User user){
+        userRep.signup(user);
+    }
 
 }

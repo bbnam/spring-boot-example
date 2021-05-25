@@ -11,4 +11,11 @@ public class Book {
     private String name;
     private String publisher;
     private int amount;
+
+    public Book(int id, String name, String publisher, int amount ){
+        this.id = id;
+        this.name = name;
+        this.publisher = publisher;
+        this.amount = amount;
+    }
 }
