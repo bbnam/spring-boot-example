@@ -1,24 +1,15 @@
-package com.example.demo1.repository.imp;
+package com.example.demo1.repository.imp.Command;
 
-import com.example.demo1.DTO.BookDTO;
-import com.example.demo1.DTO.UserBookDTO;
 import com.example.demo1.model.Book;
-import com.example.demo1.repository.BookRep;
+import com.example.demo1.repository.ICommandRepository.IBookCommandRep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
-import java.util.List;
 @Repository
-public class BookImplements implements BookRep {
+public class BookCommandImplements implements IBookCommandRep {
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @Override
-    public List<Book> findAll() {
-        return jdbcTemplate.query("Select * from book", (rs, rowNum) -> new Book(rs.getInt("id"), rs.getString("name"), rs.getString("publisher"), rs.getInt("amount")));
-    }
 
     @Override
     public int addBook(Book book) {
@@ -37,20 +28,7 @@ public class BookImplements implements BookRep {
     }
 
     @Override
-    public int updateAmount(int amount, int id) {
-        return jdbcTemplate.update("UPDATE `mydb`.`book` SET `amount` = ? WHERE (`id` = ?);", amount, id);
+    public int updateAmount(int id) {
+        return jdbcTemplate.update("UPDATE `mydb`.`book` SET `amount` = amount - 1 WHERE (`id` = ?);",  id);
     }
-
-    @Override
-    public int findAmount(int book_id) {
-        String sql = "Select amount from book where id = ?;";
-        int number = jdbcTemplate.queryForObject(sql,new Object[] { book_id },  Integer.class );
-
-        return number;
-
-    }
-
-
-
-
 }
