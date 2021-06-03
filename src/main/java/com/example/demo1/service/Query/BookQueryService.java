@@ -14,4 +14,6 @@ public class BookQueryService {
     public List<Book> findAll(){
         return  bookQueryImp.findAll();
     }
+
+
 }

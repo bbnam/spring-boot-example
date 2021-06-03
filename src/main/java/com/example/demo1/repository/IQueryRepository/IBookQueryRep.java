@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface IBookQueryRep {
     List<Book> findAll();
+    List<Book> findByName(String name);
 }
