@@ -45,7 +45,7 @@ public class UserQueryImp implements IUserQueryRep {
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices("user");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("username", name)));
+        searchSourceBuilder.query(QueryBuilders.boolQuery().must(QueryBuilders.prefixQuery("username", name)));
         searchRequest.source(searchSourceBuilder);
         List<UserDTO> userList = new ArrayList<>();
 

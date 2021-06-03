@@ -15,5 +15,5 @@ public class BookQueryService {
         return  bookQueryImp.findAll();
     }
 
-
+    public List<Book> findByName(String name) {return bookQueryImp.findByName(name);}
 }
