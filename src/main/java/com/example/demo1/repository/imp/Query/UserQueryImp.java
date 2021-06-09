@@ -37,15 +37,18 @@ public class UserQueryImp implements IUserQueryRep {
 
     @Override
     public List<UserDTO> findAll() {
-        return jdbcTemplate.query("select * from user", (rs, rowNum) -> new UserDTO(rs.getInt("id"), rs.getString("username"), rs.getString("email")));
+        return jdbcTemplate.query("select * from user", (rs, rowNum) -> new UserDTO(rs.getInt("id"),
+                rs.getString("username"), rs.getString("email")));
     }
 
     @Override
-    public List<UserDTO> findByName(String name) {
+    public List<UserDTO> findByNameAndEmail(String name, String email) {
         SearchRequest searchRequest = new SearchRequest();
-        searchRequest.indices("user");
+        searchRequest.indices("doc-user");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.boolQuery().must(QueryBuilders.prefixQuery("username", name)));
+        searchSourceBuilder.query(QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery("username", name))
+                .must(QueryBuilders.matchQuery("email", email)));
         searchRequest.source(searchSourceBuilder);
         List<UserDTO> userList = new ArrayList<>();
 

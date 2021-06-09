@@ -16,21 +16,22 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class BookQueryImp implements IBookQueryRep{
     @Autowired
     private JdbcTemplate jdbcTemplate;
     private ObjectMapper objectMapper;
+    private SearchRequest searchRequest = new SearchRequest("book");
 
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
     RestHighLevelClient client = new RestHighLevelClient(
             RestClient.builder(new HttpHost("localhost", 9200, "http")));
@@ -41,22 +42,35 @@ public class BookQueryImp implements IBookQueryRep{
 
     @Override
     public List<Book> findAll() {
-        return jdbcTemplate.query("Select * from book", (rs, rowNum) -> new Book(rs.getInt("id"), rs.getString("name"), rs.getString("publisher"), rs.getInt("amount")));
+        return jdbcTemplate.query("Select * from book",
+                (rs, rowNum) -> new Book(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("publisher"),
+                        rs.getInt("amount")));
     }
 
     @Override
     public List<Book> findByName(String name) {
 
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.indices("book");
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("name", name)));
+        searchSourceBuilder.query(QueryBuilders.multiMatchQuery(name, "name","publisher"));
+        return getBooks(searchRequest);
+    }
+
+
+    @Override
+    public List<Book> findAllEl() {
+
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+        return getBooks(searchRequest);
+    }
+
+    private List<Book> getBooks(SearchRequest searchRequest) {
         searchRequest.source(searchSourceBuilder);
         List<Book> bookList = new ArrayList<>();
 
         try {
-            SearchResponse searchResponse = null;
-            searchResponse =client.search(searchRequest, RequestOptions.DEFAULT);
+            SearchResponse searchResponse  =client.search(searchRequest, RequestOptions.DEFAULT);
             if (searchResponse.getHits().getHits().length > 0) {
                 SearchHit[] searchHit = searchResponse.getHits().getHits();
                 for (SearchHit hit : searchHit) {
@@ -64,11 +78,10 @@ public class BookQueryImp implements IBookQueryRep{
                     bookList.add(objectMapper.convertValue(map, Book.class));
                 }
             }
+
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
         return bookList;
     }
 }

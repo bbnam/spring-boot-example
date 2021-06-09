@@ -9,5 +9,6 @@ import java.util.List;
 
 public interface IUserQueryRep {
     List<UserDTO> findAll();
-    List<UserDTO> findByName(String name);
+    List<UserDTO> findByNameAndEmail(String name, String email);
+
 }

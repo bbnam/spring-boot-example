@@ -4,12 +4,11 @@ package com.example.demo1.controller.Query;
 import com.example.demo1.model.Book;
 import com.example.demo1.service.Query.BookQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.Access;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 public class BookQueryController {
@@ -21,8 +20,11 @@ public class BookQueryController {
         return bookQueryService.findAll();
     }
 
-    @GetMapping(value = "book/{name}")
-    public List<Book> searchByName(@PathVariable String name){
-        return bookQueryService.findByName(name);
+    @PostMapping(value = "book")
+    public List<Book> searchByName(@RequestBody Book name){
+        if (name.getName().isEmpty()){
+            return bookQueryService.findAllEl();
+        }
+        return bookQueryService.findByName(name.getName());
     }
 }

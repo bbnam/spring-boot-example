@@ -20,4 +20,5 @@ public class Book {
         this.publisher = publisher;
         this.amount = amount;
     }
+
 }

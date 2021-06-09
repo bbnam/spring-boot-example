@@ -1,0 +1,32 @@
+{
+  "analysis": {
+    "analyzer": {
+      "my_analyzer": {
+        "tokenizer": "my_tokenizer",
+        "tokenizer1": "my_tokenizer"
+      }
+    },
+    "tokenizer": {
+      "my_tokenizer": {
+        "type": "ngram",
+        "min_gram": 1,
+        "max_gram": 1,
+        "token_chars": [
+          "letter",
+          "digit"
+        ]
+      }
+    },
+    "tokenizer1": {
+      "my_tokenizer1": {
+        "type": "edge_ngram",
+        "min_gram": 2,
+        "max_gram": 10,
+        "token_chars": [
+          "letter",
+          "digit"
+        ]
+      }
+    }
+  }
+}

@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+
 @Service
 public class BookQueryService {
     @Autowired
@@ -15,5 +17,8 @@ public class BookQueryService {
         return  bookQueryImp.findAll();
     }
 
-    public List<Book> findByName(String name) {return bookQueryImp.findByName(name);}
+    public List<Book> findByName(String name){return bookQueryImp.findByName(name);}
+    public List<Book> findAllEl(){
+        return bookQueryImp.findAllEl();
+    }
 }
