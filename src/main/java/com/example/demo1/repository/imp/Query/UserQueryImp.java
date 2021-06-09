@@ -2,6 +2,7 @@ package com.example.demo1.repository.imp.Query;
 
 import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.repository.IQueryRepository.IUserQueryRep;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -11,10 +12,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -24,15 +22,15 @@ import java.util.Map;
 
 @Repository
 public class UserQueryImp implements IUserQueryRep {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    private ObjectMapper objectMapper;
+    private final JdbcTemplate jdbcTemplate;
+    private final ObjectMapper objectMapper;
 
     RestHighLevelClient client = new RestHighLevelClient(
             RestClient.builder(new HttpHost("localhost", 9200, "http")));
 
-    public UserQueryImp(ObjectMapper objectMapper) {
+    public UserQueryImp(ObjectMapper objectMapper, JdbcTemplate jdbcTemplate) {
         this.objectMapper = objectMapper;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -53,7 +51,7 @@ public class UserQueryImp implements IUserQueryRep {
         List<UserDTO> userList = new ArrayList<>();
 
         try {
-            SearchResponse searchResponse = null;
+            SearchResponse searchResponse;
             searchResponse =client.search(searchRequest, RequestOptions.DEFAULT);
             if (searchResponse.getHits().getHits().length > 0) {
                 SearchHit[] searchHit = searchResponse.getHits().getHits();
@@ -63,7 +61,6 @@ public class UserQueryImp implements IUserQueryRep {
                 }
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return userList;

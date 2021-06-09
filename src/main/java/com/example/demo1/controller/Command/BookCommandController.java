@@ -3,10 +3,8 @@ package com.example.demo1.controller.Command;
 
 import com.example.demo1.DTO.UserBookDTO;
 import com.example.demo1.model.Book;
-import com.example.demo1.model.User;
 import com.example.demo1.service.Command.BookCommandService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,8 +14,11 @@ import java.io.IOException;
 
 @RestController
 public class BookCommandController {
-    @Autowired
-    private BookCommandService bookCommandService;
+    private final BookCommandService bookCommandService;
+
+    public BookCommandController(BookCommandService bookCommandService) {
+        this.bookCommandService = bookCommandService;
+    }
 
     @PostMapping("/AddBook")
     public void AddBook(@RequestBody Book book){

@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-//import static sun.nio.cs.Surrogate.is;
 
 @Service
 public class UserCommandService {

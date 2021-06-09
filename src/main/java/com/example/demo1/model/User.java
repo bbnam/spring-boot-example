@@ -14,13 +14,11 @@ import javax.persistence.Id;
 
 @Getter
 @Setter
-//@Document(indexName = "doc-user")
 public class User {
 
-//    @Field(type = FieldType.Text, analyzer = "analysis")
     private String username;
     private String password;
-//    @Id
+
     private int id;
     private String email;
 
