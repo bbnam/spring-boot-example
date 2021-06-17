@@ -1,11 +1,15 @@
 package com.example.demo1.controller.Query;
 
 
+import com.example.demo1.DTO.BookResponseDTO;
 import com.example.demo1.model.Book;
 import com.example.demo1.service.Query.BookQueryService;
+import org.json.JSONException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 
 @RestController
@@ -16,9 +20,11 @@ public class BookQueryController {
         this.bookQueryService = bookQueryService;
     }
 
-    @GetMapping("/GetBook")
-    public List<Book> getBook(){
-        return bookQueryService.findAll();
+    @GetMapping(value = "/GetBook")
+    public ResponseEntity<BookResponseDTO> allBook() throws JSONException {
+
+        return ResponseEntity.ok().body(bookQueryService.findAll());
+
     }
 
     @PostMapping(value = "book")
