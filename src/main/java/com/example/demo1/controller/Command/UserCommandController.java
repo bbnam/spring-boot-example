@@ -30,7 +30,8 @@ public class UserCommandController {
 
     @PostMapping("/ElasticsearchUser")
     public void test(@RequestBody User user) throws IOException {
-        userCommandService.shouldSaveUser(user);
+        userCommandService.saveUserToElasticsearch(user);
+        userCommandService.sendToKafka(user);
     }
 
 

@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 public class BookResponseDTO {
     private int status;
-    private HttpStatus code;
+    private int code;
     private List<Book> result;
 
     public BookResponseDTO(int status, int code, List<Book> result){

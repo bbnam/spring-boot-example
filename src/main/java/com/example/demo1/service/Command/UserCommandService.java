@@ -17,7 +17,10 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -29,7 +32,8 @@ import java.util.Map;
 public class UserCommandService {
     private UserCommadImp userCommadImp;
     private UserQueryImp userQueryImp;
-
+    @Autowired
+    private KafkaTemplate<String, User> kafkaTemplate;
 
     RestHighLevelClient client = new RestHighLevelClient(
             RestClient.builder(new HttpHost("localhost", 9200, "http")));
@@ -94,7 +98,7 @@ public class UserCommandService {
         return true;
     }
 
-    public void shouldSaveUser(User user) throws JsonProcessingException, IOException {
+    public void saveUserToElasticsearch (User user) throws JsonProcessingException, IOException {
 
         IndexRequest request = new IndexRequest("doc-user");
         request.id(String.valueOf(user.getId()));
@@ -105,5 +109,14 @@ public class UserCommandService {
 
     }
 
+
+    public void sendToKafka(User user){
+        kafkaTemplate.send("test1", user);
+    }
+
+    @KafkaListener(topics = "test1", groupId = "group-id")
+    public void listen(User message) {
+        System.out.println("Received Message in group - group-id: " + message.toString());
+    }
 
 }
