@@ -1,7 +1,6 @@
 package com.example.demo1.DTO;
 
 
-import com.example.demo1.model.Book;
 import lombok.Data;
 
 import java.util.List;

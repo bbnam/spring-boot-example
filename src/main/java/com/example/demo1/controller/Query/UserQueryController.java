@@ -3,13 +3,12 @@ package com.example.demo1.controller.Query;
 import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.DTO.UserEmailDTO;
 import com.example.demo1.service.Query.UserQueryService;
-import org.elasticsearch.common.inject.Inject;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @RestController
 public class UserQueryController {
-    private UserQueryService userQueryService;
+    private final UserQueryService userQueryService;
 
     public UserQueryController(UserQueryService userQueryService) {
         this.userQueryService = userQueryService;

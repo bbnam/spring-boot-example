@@ -5,6 +5,10 @@ import com.example.demo1.model.Book;
 import com.example.demo1.repository.IQueryRepository.IBookQueryRep;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -25,16 +29,28 @@ import java.util.Map;
 public class BookQueryImp implements IBookQueryRep{
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
-    private final SearchRequest searchRequest = new SearchRequest("book");
+    private final SearchRequest searchRequest = new SearchRequest("bbnam-doc-book");
 
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
-    RestHighLevelClient client = new RestHighLevelClient(
-            RestClient.builder(new HttpHost("localhost", 9200, "http")));
+    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+
+    public RestHighLevelClient test(){
+        credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
+
+        return new RestHighLevelClient(
+                RestClient.builder(new HttpHost("https://10.3.104.30/", 9200, "http"))
+                        .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
+                                .setDefaultCredentialsProvider(credentialsProvider)
+                        ));
+    }
     
     public BookQueryImp(ObjectMapper objectMapper, JdbcTemplate jdbcTemplate) {
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
+
     }
 
     @Override
@@ -67,7 +83,7 @@ public class BookQueryImp implements IBookQueryRep{
         List<Book> bookList = new ArrayList<>();
 
         try {
-            SearchResponse searchResponse  =client.search(searchRequest, RequestOptions.DEFAULT);
+            SearchResponse searchResponse  =test().search(searchRequest, RequestOptions.DEFAULT);
             if (searchResponse.getHits().getHits().length > 0) {
                 SearchHit[] searchHit = searchResponse.getHits().getHits();
                 for (SearchHit hit : searchHit) {

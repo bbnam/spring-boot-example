@@ -1,14 +1,14 @@
 package com.example.demo1.service.Command;
 
 
-import com.example.demo1.model.Book;
 import com.example.demo1.model.User;
 import com.example.demo1.repository.imp.Command.UserCommadImp;
-import com.example.demo1.repository.imp.Query.UserQueryImp;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -17,7 +17,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -30,13 +29,32 @@ import java.util.Map;
 
 @Service
 public class UserCommandService {
-    private UserCommadImp userCommadImp;
-    private UserQueryImp userQueryImp;
-    @Autowired
-    private KafkaTemplate<String, User> kafkaTemplate;
+    private final UserCommadImp userCommadImp;
+    private final KafkaTemplate<String, User> kafkaTemplate;
 
-    RestHighLevelClient client = new RestHighLevelClient(
-            RestClient.builder(new HttpHost("localhost", 9200, "http")));
+    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+
+    public RestHighLevelClient test(){
+        credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
+
+        return new RestHighLevelClient(
+                RestClient.builder(new HttpHost("https://10.3.104.30/", 9200, "http"))
+                        .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
+                                .setDefaultCredentialsProvider(credentialsProvider)
+                        ));
+    }
+
+
+
+    public UserCommandService(UserCommadImp userCommadImp,  KafkaTemplate<String, User> kafkaTemplate) {
+        this.userCommadImp = userCommadImp;
+
+        this.kafkaTemplate = kafkaTemplate;
+
+
+    }
 
     public void update_user(User user){
         userCommadImp.update(user);
@@ -44,18 +62,19 @@ public class UserCommandService {
     public void signup(User user){
         userCommadImp.signup(user);
     }
-
     @Bean
-    public boolean createUserIndex(RestHighLevelClient restHighLevelClient) throws Exception {
-        try{
-            DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest("doc-user");
-            restHighLevelClient.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT); // 1
+    public boolean createUserIndex() throws Exception {
 
-            DeleteIndexRequest deleteIndexRequest_book = new DeleteIndexRequest("book");
-            restHighLevelClient.indices().delete(deleteIndexRequest_book, RequestOptions.DEFAULT); // 1
-        } catch (Exception ignored) {
-        }
-        CreateIndexRequest createIndexRequest = new CreateIndexRequest("doc-user");
+        credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
+
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("10.3.104.30", 9200, "http"))
+                        .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
+                                .setDefaultCredentialsProvider(credentialsProvider)
+                        ));
+
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest("bbnam-doc-user");
 
         Map<String, Object> username = new HashMap<>();
         username.put("type", "text");
@@ -87,7 +106,7 @@ public class UserCommandService {
 
 
         // tao index book
-        CreateIndexRequest createIndexRequest_2 = new CreateIndexRequest("book");
+        CreateIndexRequest createIndexRequest_2 = new CreateIndexRequest("bbnam-doc-book");
 
         createIndexRequest_2.settings(Settings.builder()
                 .put("index.number_of_shards", 1)
@@ -98,13 +117,13 @@ public class UserCommandService {
         return true;
     }
 
-    public void saveUserToElasticsearch (User user) throws JsonProcessingException, IOException {
+    public void saveUserToElasticsearch (User user) throws IOException {
 
-        IndexRequest request = new IndexRequest("doc-user");
+        IndexRequest request = new IndexRequest("bbn-doc-user");
         request.id(String.valueOf(user.getId()));
         System.out.println(new ObjectMapper().writeValueAsString(user.getUsername()));
         request.source(new ObjectMapper().writeValueAsString(user), XContentType.JSON);
-        IndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);
+        IndexResponse indexResponse = test().index(request, RequestOptions.DEFAULT);
 
 
     }

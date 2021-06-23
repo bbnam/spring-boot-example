@@ -4,16 +4,18 @@ package com.example.demo1.service.Command;
 import com.example.demo1.DTO.UserBookDTO;
 import com.example.demo1.model.Book;
 import com.example.demo1.repository.imp.Command.BookCommandImplements;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,10 +24,25 @@ import java.util.Calendar;
 
 @Service
 public class BookCommandService {
-    @Autowired
-    private BookCommandImplements bookCommandImplements;
-    RestHighLevelClient client = new RestHighLevelClient(
-            RestClient.builder(new HttpHost("localhost", 9200, "http")));
+    private final BookCommandImplements bookCommandImplements;
+    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+
+    public BookCommandService(BookCommandImplements bookCommandImplements) {
+        this.bookCommandImplements = bookCommandImplements;
+    }
+
+
+    public RestHighLevelClient test(){
+        credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
+
+        return new RestHighLevelClient(
+                RestClient.builder(new HttpHost("https://10.3.104.30/", 9200, "http"))
+                        .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
+                                .setDefaultCredentialsProvider(credentialsProvider)
+                        ));
+    }
+
 
     public void addBook(Book book){
         bookCommandImplements.addBook(book);
@@ -61,11 +78,11 @@ public class BookCommandService {
         }
     }
 
-    public void saveBookElasticsearch(Book book) throws JsonProcessingException, IOException {
+    public void saveBookElasticsearch(Book book) throws  IOException {
         IndexRequest request = new IndexRequest("book");
         request.id(String.valueOf(book.getId()));
         System.out.println(new ObjectMapper().writeValueAsString(book));
         request.source(new ObjectMapper().writeValueAsString(book), XContentType.JSON);
-        IndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);
+        IndexResponse indexResponse = test().index(request, RequestOptions.DEFAULT);
     }
 }

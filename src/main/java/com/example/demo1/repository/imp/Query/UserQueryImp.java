@@ -4,6 +4,10 @@ import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.repository.IQueryRepository.IUserQueryRep;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -24,13 +28,25 @@ import java.util.Map;
 public class UserQueryImp implements IUserQueryRep {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
-    RestHighLevelClient client = new RestHighLevelClient(
-            RestClient.builder(new HttpHost("localhost", 9200, "http")));
+
+    public RestHighLevelClient test(){
+        credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
+
+        RestHighLevelClient client = new RestHighLevelClient(
+                RestClient.builder(new HttpHost("https://10.3.104.30/", 9200, "http"))
+                        .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
+                                .setDefaultCredentialsProvider(credentialsProvider)
+                        ));
+        return client;
+    }
 
     public UserQueryImp(ObjectMapper objectMapper, JdbcTemplate jdbcTemplate) {
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
+
     }
 
     @Override
@@ -42,7 +58,7 @@ public class UserQueryImp implements IUserQueryRep {
     @Override
     public List<UserDTO> findByNameAndEmail(String name, String email) {
         SearchRequest searchRequest = new SearchRequest();
-        searchRequest.indices("doc-user");
+        searchRequest.indices("bbn-doc-user");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchQuery("username", name))
@@ -52,7 +68,7 @@ public class UserQueryImp implements IUserQueryRep {
 
         try {
             SearchResponse searchResponse;
-            searchResponse =client.search(searchRequest, RequestOptions.DEFAULT);
+            searchResponse =test().search(searchRequest, RequestOptions.DEFAULT);
             if (searchResponse.getHits().getHits().length > 0) {
                 SearchHit[] searchHit = searchResponse.getHits().getHits();
                 for (SearchHit hit : searchHit) {
