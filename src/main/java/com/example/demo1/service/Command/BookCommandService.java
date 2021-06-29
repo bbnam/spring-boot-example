@@ -62,14 +62,13 @@ public class BookCommandService {
         for(int i =0; i < userBookDTO.getBook().size(); i++){
             try {
                 bookCommandImplements.userBook(
-                        userBookDTO.getId(),
+                        userBookDTO.getUser().getId(),
                         userBookDTO.getBook().get(i).getId(),
                         currDate,
                         newDate
                 );
-
-
                 bookCommandImplements.updateAmount(userBookDTO.getBook().get(i).getId());
+
             }
             catch (Exception e){
                 System.out.println(e.getMessage());
@@ -84,5 +83,13 @@ public class BookCommandService {
         System.out.println(new ObjectMapper().writeValueAsString(book));
         request.source(new ObjectMapper().writeValueAsString(book), XContentType.JSON);
         IndexResponse indexResponse = test().index(request, RequestOptions.DEFAULT);
+    }
+
+    public void saveBookHbase(Book book) throws Exception{
+        bookCommandImplements.addBookToHbase(book);
+    }
+
+    public void updateBookHbase(Book book) throws Exception{
+        bookCommandImplements.updateBookHbase(book);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.demo1.service.Command;
 
 
+import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.model.User;
 import com.example.demo1.repository.imp.Command.UserCommadImp;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,67 +60,68 @@ public class UserCommandService {
     public void update_user(User user){
         userCommadImp.update(user);
     }
+
     public void signup(User user){
         userCommadImp.signup(user);
     }
-    @Bean
-    public boolean createUserIndex() throws Exception {
-
-        credentialsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
-
-        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
-                RestClient.builder(new HttpHost("10.3.104.30", 9200, "http"))
-                        .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
-                                .setDefaultCredentialsProvider(credentialsProvider)
-                        ));
-
-        CreateIndexRequest createIndexRequest = new CreateIndexRequest("bbnam-doc-user");
-
-        Map<String, Object> username = new HashMap<>();
-        username.put("type", "text");
-        username.put("analyzer", "autocomplete");
-
-        Map<String, Object> id = new HashMap<>();
-        id.put("type", "long");
-
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("username", username);
-        properties.put("id", id);
-
-
-        Map<String, Object> mapping = new HashMap<>();
-        mapping.put("properties", properties);
-        createIndexRequest.mapping(mapping);
-
-        createIndexRequest.settings(Settings.builder()
-                .put("index.number_of_shards", 1)
-                .put("index.number_of_replicas", 0)
-                .put("analysis.filter.autocomplete_filter.type", "ngram")
-                .put("analysis.filter.autocomplete_filter.min_gram", "1")
-                .put("analysis.filter.autocomplete_filter.max_gram", "1")
-                .put("analysis.analyzer.autocomplete.type", "custom")
-                .put("analysis.analyzer.autocomplete.tokenizer", "standard")
-                .putList("analysis.analyzer.autocomplete.filter", "lowercase", "autocomplete_filter")
-        );
-        restHighLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
-
-
-        // tao index book
-        CreateIndexRequest createIndexRequest_2 = new CreateIndexRequest("bbnam-doc-book");
-
-        createIndexRequest_2.settings(Settings.builder()
-                .put("index.number_of_shards", 1)
-                .put("index.number_of_replicas", 0)
-        );
-        restHighLevelClient.indices().create(createIndexRequest_2, RequestOptions.DEFAULT);
-
-        return true;
-    }
+//    @Bean
+//    public boolean createUserIndex() throws Exception {
+//
+//        credentialsProvider.setCredentials(AuthScope.ANY,
+//                new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
+//
+//        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(
+//                RestClient.builder(new HttpHost("10.3.104.30", 9200, "http"))
+//                        .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
+//                                .setDefaultCredentialsProvider(credentialsProvider)
+//                        ));
+//
+//        CreateIndexRequest createIndexRequest = new CreateIndexRequest("bbnam-doc-user");
+//
+//        Map<String, Object> username = new HashMap<>();
+//        username.put("type", "text");
+//        username.put("analyzer", "autocomplete");
+//
+//        Map<String, Object> id = new HashMap<>();
+//        id.put("type", "long");
+//
+//        Map<String, Object> properties = new HashMap<>();
+//        properties.put("username", username);
+//        properties.put("id", id);
+//
+//
+//        Map<String, Object> mapping = new HashMap<>();
+//        mapping.put("properties", properties);
+//        createIndexRequest.mapping(mapping);
+//
+//        createIndexRequest.settings(Settings.builder()
+//                .put("index.number_of_shards", 1)
+//                .put("index.number_of_replicas", 0)
+//                .put("analysis.filter.autocomplete_filter.type", "ngram")
+//                .put("analysis.filter.autocomplete_filter.min_gram", "1")
+//                .put("analysis.filter.autocomplete_filter.max_gram", "1")
+//                .put("analysis.analyzer.autocomplete.type", "custom")
+//                .put("analysis.analyzer.autocomplete.tokenizer", "standard")
+//                .putList("analysis.analyzer.autocomplete.filter", "lowercase", "autocomplete_filter")
+//        );
+//        restHighLevelClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+//
+//
+//        // tao index book
+//        CreateIndexRequest createIndexRequest_2 = new CreateIndexRequest("bbnam-doc-book");
+//
+//        createIndexRequest_2.settings(Settings.builder()
+//                .put("index.number_of_shards", 1)
+//                .put("index.number_of_replicas", 0)
+//        );
+//        restHighLevelClient.indices().create(createIndexRequest_2, RequestOptions.DEFAULT);
+//
+//        return true;
+//    }
 
     public void saveUserToElasticsearch (User user) throws IOException {
 
-        IndexRequest request = new IndexRequest("bbn-doc-user");
+        IndexRequest request = new IndexRequest("bbnam-doc-user");
         request.id(String.valueOf(user.getId()));
         System.out.println(new ObjectMapper().writeValueAsString(user.getUsername()));
         request.source(new ObjectMapper().writeValueAsString(user), XContentType.JSON);
@@ -136,6 +138,14 @@ public class UserCommandService {
     @KafkaListener(topics = "test1", groupId = "group-id")
     public void listen(User message) {
         System.out.println("Received Message in group - group-id: " + message.toString());
+    }
+
+    public void saveToHbase (User user) throws Exception {
+        userCommadImp.saveUserToHbase(user);
+    }
+
+    public void updateUserHbase(User user) throws Exception{
+        userCommadImp.updateUserHbase(user);
     }
 
 }

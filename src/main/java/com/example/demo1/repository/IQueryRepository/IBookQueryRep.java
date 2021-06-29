@@ -8,4 +8,5 @@ public interface IBookQueryRep {
     List<Book> findAll();
     List<Book> findByName(String name);
     List<Book> findAllEl();
+    List<Book> findAllHbase() throws Exception;
 }

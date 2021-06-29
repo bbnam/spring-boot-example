@@ -22,4 +22,8 @@ public class BookQueryService {
     public List<Book> findAllEl(){
         return bookQueryImp.findAllEl();
     }
+
+    public BookResponseDTO findAllBookHbase() throws Exception{
+        return new BookResponseDTO(0,200,bookQueryImp.findAllHbase());
+    }
 }

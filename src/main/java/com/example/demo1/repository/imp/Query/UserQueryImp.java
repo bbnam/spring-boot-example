@@ -1,8 +1,17 @@
 package com.example.demo1.repository.imp.Query;
 
 import com.example.demo1.DTO.UserDTO;
+import com.example.demo1.repository.Hbase;
 import com.example.demo1.repository.IQueryRepository.IUserQueryRep;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.CompareOperator;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.filter.*;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -51,7 +60,7 @@ public class UserQueryImp implements IUserQueryRep {
 
     @Override
     public List<UserDTO> findAll() {
-        return jdbcTemplate.query("select * from user", (rs, rowNum) -> new UserDTO(rs.getInt("id"),
+        return jdbcTemplate.query("select * from user", (rs, rowNum) -> new UserDTO(rs.getString("id"),
                 rs.getString("username"), rs.getString("email")));
     }
 
@@ -80,6 +89,19 @@ public class UserQueryImp implements IUserQueryRep {
             e.printStackTrace();
         }
         return userList;
+    }
+
+    @Override
+    public List<UserDTO> findAllFromHbase() throws Exception {
+        Scan scan = new Scan();
+
+        scan.addColumn(Bytes.toBytes("user"), Bytes.toBytes("username"));
+        scan.addColumn(Bytes.toBytes("user"), Bytes.toBytes("email"));
+
+        Hbase hbase = new Hbase();
+        List<UserDTO> userDTOList = hbase.ScanUserTable(TableName.valueOf("book_lib"), scan);
+
+        return userDTOList;
     }
 
 }

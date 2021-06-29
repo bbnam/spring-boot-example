@@ -2,7 +2,9 @@ package com.example.demo1.service.Query;
 
 import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.DTO.UserEmailDTO;
+import com.example.demo1.DTO.UserResponseDTO;
 import com.example.demo1.repository.IQueryRepository.IUserQueryRep;
+import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,4 +23,7 @@ public class UserQueryService {
         return  iUserQueryRep.findByNameAndEmail(userEmailDTO.getUsername(), userEmailDTO.getEmail());
     }
 
+    public UserResponseDTO findAllFromHbase() throws Exception {
+        return new UserResponseDTO(0,200, iUserQueryRep.findAllFromHbase());
+    }
 }

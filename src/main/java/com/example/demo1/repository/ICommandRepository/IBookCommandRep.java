@@ -1,6 +1,7 @@
 package com.example.demo1.repository.ICommandRepository;
 
 import com.example.demo1.model.Book;
+import com.example.demo1.model.User;
 
 
 public interface IBookCommandRep {
@@ -8,4 +9,7 @@ public interface IBookCommandRep {
     int updateBook(Book book);
     int userBook(int user_id, int book_id, String time_borrowed, String time_out);
     int updateAmount(int id);
+    void addBookToHbase(Book book) throws Exception;
+    void userBookToHbase (User user, Book book, String time_borrowed, String time_out) throws Exception;
+    void updateBookHbase(Book book) throws Exception;
 }

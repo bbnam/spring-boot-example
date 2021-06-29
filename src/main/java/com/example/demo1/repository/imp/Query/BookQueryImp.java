@@ -1,9 +1,14 @@
 package com.example.demo1.repository.imp.Query;
 
 
+import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.model.Book;
+import com.example.demo1.repository.Hbase;
 import com.example.demo1.repository.IQueryRepository.IBookQueryRep;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -57,7 +62,7 @@ public class BookQueryImp implements IBookQueryRep{
     public List<Book> findAll() {
         return jdbcTemplate.query("Select * from book",
                 (rs, rowNum) -> new Book(
-                        rs.getInt("id"),
+                        rs.getString("id"),
                         rs.getString("name"),
                         rs.getString("publisher"),
                         rs.getInt("amount")));
@@ -76,6 +81,19 @@ public class BookQueryImp implements IBookQueryRep{
 
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
         return getBooks(searchRequest);
+    }
+
+    @Override
+    public List<Book> findAllHbase() throws Exception {
+        Scan scan = new Scan();
+
+        scan.addColumn(Bytes.toBytes("book"), Bytes.toBytes("name"));
+        scan.addColumn(Bytes.toBytes("book"), Bytes.toBytes("publisher"));
+        scan.addColumn(Bytes.toBytes("book"), Bytes.toBytes("amount"));
+
+        Hbase hbase = new Hbase();
+        List<Book> bookList = hbase.ScanBookTable(TableName.valueOf("book_lib"), scan);
+        return bookList;
     }
 
     private List<Book> getBooks(SearchRequest searchRequest) {

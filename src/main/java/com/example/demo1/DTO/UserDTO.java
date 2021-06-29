@@ -4,12 +4,12 @@ import lombok.Data;
 
 @Data
 public class  UserDTO {
-    private int id;
+    private String id;
     private String username;
     private String email;
 
 
-    public UserDTO(int id, String username, String email) {
+    public UserDTO(String id, String username, String email) {
         this.id = id;
         this.username = username;
         this.email = email;

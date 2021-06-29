@@ -1,6 +1,9 @@
 package com.example.demo1.controller.Command;
 
 
+import com.example.demo1.DTO.MessageResponseDTO;
+import com.example.demo1.model.Book;
+import com.example.demo1.model.Message;
 import com.example.demo1.model.User;
 import com.example.demo1.service.Command.UserCommandService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +37,17 @@ public class UserCommandController {
         userCommandService.sendToKafka(user);
     }
 
+    @PostMapping("/test")
+    public void test_hbase (@RequestBody User user) throws Exception {
+        userCommandService.saveToHbase(user);
+    }
+
+    @PostMapping("/bookHbase")
+    public MessageResponseDTO updateUserHbase(@RequestBody User user) throws Exception{
+        userCommandService.updateUserHbase(user);
+        Message message = new Message("Cập nhập thông tin thành công!");
+        return new MessageResponseDTO(0,200, message);
+    }
 
 }
 

@@ -34,4 +34,9 @@ public class BookQueryController {
         }
         return bookQueryService.findByName(name.getName());
     }
+
+    @GetMapping(value = "/bookHbase")
+    public BookResponseDTO allBookHbase() throws Exception{
+        return bookQueryService.findAllBookHbase();
+    }
 }
