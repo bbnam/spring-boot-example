@@ -1,9 +1,11 @@
 package com.example.demo1.service.Command;
 
 
+import com.example.demo1.DTO.BookRequestDTO;
 import com.example.demo1.DTO.UserBookDTO;
 import com.example.demo1.model.Book;
 import com.example.demo1.repository.imp.Command.BookCommandImplements;
+import com.example.demo1.service.SequenceGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -85,11 +87,18 @@ public class BookCommandService {
         IndexResponse indexResponse = test().index(request, RequestOptions.DEFAULT);
     }
 
-    public void saveBookHbase(Book book) throws Exception{
-        bookCommandImplements.addBookToHbase(book);
+    public void saveBookHbase(BookRequestDTO book) throws Exception{
+        SequenceGenerator sequenceGenerator = new SequenceGenerator();
+
+        Book book1 = new Book((int) sequenceGenerator.nextId(), book.getName(), book.getPublisher(), book.getAmount());
+        bookCommandImplements.addBookToHbase(book1);
     }
 
     public void updateBookHbase(Book book) throws Exception{
+
         bookCommandImplements.updateBookHbase(book);
     }
+
+
+
 }

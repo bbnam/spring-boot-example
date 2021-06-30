@@ -4,7 +4,6 @@ package com.example.demo1.repository.imp.Command;
 import com.example.demo1.model.User;
 import com.example.demo1.repository.Hbase;
 import com.example.demo1.repository.ICommandRepository.IUserCommandRep;
-import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
@@ -33,7 +32,8 @@ public class UserCommadImp implements IUserCommandRep {
 
     @Override
     public void signup(User user){
-         jdbcTemplate.update("INSERT INTO `mydb`.`user`(username , password, email) " + "VALUES(?,?,?);",
+         jdbcTemplate.update("INSERT INTO `mydb`.`user`(id, username , password, email) " + "VALUES(?,?,?,?);",
+                 user.getId(),
                  user.getUsername(),
                  user.getPassword(),
                  user.getEmail());
@@ -42,17 +42,13 @@ public class UserCommadImp implements IUserCommandRep {
     @Override
     public void saveUserToHbase(User user) throws Exception {
         Configuration conf = HBaseConfiguration.create();
-        Connection connection = ConnectionFactory.createConnection(conf);
 
-        Table table = null;
-
-        try {
-            table = connection.getTable(TableName.valueOf("book_lib"));
+        try (Connection connection = ConnectionFactory.createConnection(conf);
+             Table table = connection.getTable(TableName.valueOf("book_lib")))
+        {
             System.out.println("Table: " + table.toString());
 
-            TimeStamp timeStamp = new TimeStamp(System.currentTimeMillis());
-
-            String row_key =timeStamp.toString();
+            String row_key = String.valueOf(user.getId());
 
             Put p = new Put(Bytes.toBytes(row_key));
 
@@ -68,11 +64,7 @@ public class UserCommadImp implements IUserCommandRep {
                     Bytes.toBytes("email"),
                     Bytes.toBytes(user.getEmail()));
 
-            table .put(p);
-
-        } finally {
-            table.close();
-            connection.close();
+            table.put(p);
         }
 
 

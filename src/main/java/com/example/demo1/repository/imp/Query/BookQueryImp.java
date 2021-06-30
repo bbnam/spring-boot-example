@@ -62,7 +62,7 @@ public class BookQueryImp implements IBookQueryRep{
     public List<Book> findAll() {
         return jdbcTemplate.query("Select * from book",
                 (rs, rowNum) -> new Book(
-                        rs.getString("id"),
+                        rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("publisher"),
                         rs.getInt("amount")));

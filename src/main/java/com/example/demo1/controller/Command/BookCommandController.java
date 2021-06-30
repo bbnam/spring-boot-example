@@ -1,6 +1,7 @@
 package com.example.demo1.controller.Command;
 
 
+import com.example.demo1.DTO.BookRequestDTO;
 import com.example.demo1.DTO.MessageResponseDTO;
 import com.example.demo1.DTO.UserBookDTO;
 import com.example.demo1.model.Book;
@@ -43,7 +44,7 @@ public class BookCommandController {
     }
 
     @PostMapping("/HbaseBook")
-    public void saveBookHbase(@RequestBody Book book) throws Exception{
+    public void saveBookHbase(@RequestBody BookRequestDTO book) throws Exception{
         bookCommandService.saveBookHbase(book);
     }
     @PostMapping("/bookUpdateHbase")

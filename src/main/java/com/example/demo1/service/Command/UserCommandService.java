@@ -1,9 +1,11 @@
 package com.example.demo1.service.Command;
 
 
-import com.example.demo1.DTO.UserDTO;
+import com.example.demo1.DTO.UserRequestDTO;
+import com.example.demo1.model.Book;
 import com.example.demo1.model.User;
 import com.example.demo1.repository.imp.Command.UserCommadImp;
+import com.example.demo1.service.SequenceGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -15,23 +17,25 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.springframework.context.annotation.Bean;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 
 @Service
 public class UserCommandService {
+    @Autowired
     private final UserCommadImp userCommadImp;
-    private final KafkaTemplate<String, User> kafkaTemplate;
+
+    @Autowired
+    private final KafkaTemplate<String, UserRequestDTO> kafkaTemplate;
 
     final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
@@ -49,21 +53,16 @@ public class UserCommandService {
 
 
 
-    public UserCommandService(UserCommadImp userCommadImp,  KafkaTemplate<String, User> kafkaTemplate) {
+    public UserCommandService(UserCommadImp userCommadImp,  KafkaTemplate<String, UserRequestDTO> kafkaTemplate) {
         this.userCommadImp = userCommadImp;
 
         this.kafkaTemplate = kafkaTemplate;
-
-
     }
 
     public void update_user(User user){
         userCommadImp.update(user);
     }
 
-    public void signup(User user){
-        userCommadImp.signup(user);
-    }
 //    @Bean
 //    public boolean createUserIndex() throws Exception {
 //
@@ -127,25 +126,41 @@ public class UserCommandService {
         request.source(new ObjectMapper().writeValueAsString(user), XContentType.JSON);
         IndexResponse indexResponse = test().index(request, RequestOptions.DEFAULT);
 
-
     }
 
 
-    public void sendToKafka(User user){
-        kafkaTemplate.send("test1", user);
-    }
-
-    @KafkaListener(topics = "test1", groupId = "group-id")
-    public void listen(User message) {
-        System.out.println("Received Message in group - group-id: " + message.toString());
-    }
-
-    public void saveToHbase (User user) throws Exception {
-        userCommadImp.saveUserToHbase(user);
-    }
 
     public void updateUserHbase(User user) throws Exception{
         userCommadImp.updateUserHbase(user);
     }
+
+
+    public void sendUserRequestToKafka(UserRequestDTO user){
+        kafkaTemplate.send("book_lib",0, null , user);
+    }
+
+    @KafkaListener(groupId = "book_lib", topicPartitions = @TopicPartition(
+            topic = "book_lib",
+            partitions = "0"))
+    public void listen1(UserRequestDTO userRequestDTO) throws Exception {
+        SequenceGenerator sequenceGenerator = new SequenceGenerator();
+        UUID uuid = UUID.randomUUID();
+
+        System.out.println(uuid.getMostSignificantBits());
+        User user = new User(userRequestDTO.getUsername(),
+                userRequestDTO.getPassword(),
+                5,
+                userRequestDTO.getEmail());
+
+        userCommadImp.saveUserToHbase(user);
+        userCommadImp.signup(user);
+    }
+
+
+
+
+
+
+
 
 }

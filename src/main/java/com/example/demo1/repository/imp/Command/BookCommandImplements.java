@@ -67,9 +67,9 @@ public class BookCommandImplements implements IBookCommandRep {
             table = connection.getTable(TableName.valueOf("book_lib"));
             System.out.println("Table: " + table.toString());
 
-            TimeStamp timeStamp = new TimeStamp(System.currentTimeMillis());
 
-            String row_key =timeStamp.toString();
+
+            String row_key = String.valueOf(book.getId());
 
             Put p = new Put(Bytes.toBytes(row_key));
 

@@ -2,7 +2,7 @@ package com.example.demo1.controller.Command;
 
 
 import com.example.demo1.DTO.MessageResponseDTO;
-import com.example.demo1.model.Book;
+import com.example.demo1.DTO.UserRequestDTO;
 import com.example.demo1.model.Message;
 import com.example.demo1.model.User;
 import com.example.demo1.service.Command.UserCommandService;
@@ -26,20 +26,14 @@ public class UserCommandController {
 
     }
 
-    @PostMapping("/SignUp")
-    public void signUp(@RequestBody User user){
-        userCommandService.signup(user);
-    }
-
     @PostMapping("/ElasticsearchUser")
     public void test(@RequestBody User user) throws IOException {
         userCommandService.saveUserToElasticsearch(user);
-        userCommandService.sendToKafka(user);
     }
 
-    @PostMapping("/test")
-    public void test_hbase (@RequestBody User user) throws Exception {
-        userCommandService.saveToHbase(user);
+    @PostMapping("/signUp")
+    public void saveUserHbase (@RequestBody UserRequestDTO user) throws Exception {
+        userCommandService.sendUserRequestToKafka(user);
     }
 
     @PostMapping("/bookHbase")

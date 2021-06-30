@@ -47,7 +47,7 @@ public class Hbase {
             for (Result result = scanner.next(); result != null; result = scanner.next()){
 
 
-                String  row_key = Bytes.toString(result.getRow());
+                int  row_key = Bytes.toInt(result.getRow());
                 String name = Bytes.toString(result.getValue(Bytes.toBytes("book"), Bytes.toBytes("name")));
 
                 String publisher = Bytes.toString(result.getValue(Bytes.toBytes("book"), Bytes.toBytes("publisher")));
