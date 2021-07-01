@@ -1,8 +1,7 @@
 package com.example.demo1.service.Command;
 
 
-import com.example.demo1.DTO.UserRequestDTO;
-import com.example.demo1.model.Book;
+import com.example.demo1.DTO.UserKafka;
 import com.example.demo1.model.User;
 import com.example.demo1.repository.imp.Command.UserCommadImp;
 import com.example.demo1.service.SequenceGenerator;
@@ -18,7 +17,6 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.TopicPartition;
@@ -26,7 +24,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.UUID;
 
 
 @Service
@@ -35,7 +32,7 @@ public class UserCommandService {
     private final UserCommadImp userCommadImp;
 
     @Autowired
-    private final KafkaTemplate<String, UserRequestDTO> kafkaTemplate;
+    private final KafkaTemplate<String, UserKafka> kafkaTemplate;
 
     final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
@@ -53,14 +50,11 @@ public class UserCommandService {
 
 
 
-    public UserCommandService(UserCommadImp userCommadImp,  KafkaTemplate<String, UserRequestDTO> kafkaTemplate) {
+    public UserCommandService(UserCommadImp userCommadImp, KafkaTemplate<String, UserKafka> kafkaTemplate
+                              ) {
         this.userCommadImp = userCommadImp;
 
         this.kafkaTemplate = kafkaTemplate;
-    }
-
-    public void update_user(User user){
-        userCommadImp.update(user);
     }
 
 //    @Bean
@@ -129,31 +123,41 @@ public class UserCommandService {
     }
 
 
-
-    public void updateUserHbase(User user) throws Exception{
-        userCommadImp.updateUserHbase(user);
-    }
-
-
-    public void sendUserRequestToKafka(UserRequestDTO user){
+    public void sendUserRequestToKafka(UserKafka user){
         kafkaTemplate.send("book_lib",0, null , user);
     }
 
     @KafkaListener(groupId = "book_lib", topicPartitions = @TopicPartition(
             topic = "book_lib",
             partitions = "0"))
-    public void listen1(UserRequestDTO userRequestDTO) throws Exception {
-        SequenceGenerator sequenceGenerator = new SequenceGenerator();
-        UUID uuid = UUID.randomUUID();
+    public void listen1(UserKafka userKafka) throws Exception {
+        System.out.println(userKafka);
+        if (userKafka.getCode() == 0) {
 
-        System.out.println(uuid.getMostSignificantBits());
-        User user = new User(userRequestDTO.getUsername(),
-                userRequestDTO.getPassword(),
-                5,
-                userRequestDTO.getEmail());
+            SequenceGenerator sequenceGenerator = new SequenceGenerator();
 
-        userCommadImp.saveUserToHbase(user);
-        userCommadImp.signup(user);
+            long id = sequenceGenerator.nextId();
+
+            User user = new User(userKafka.getUsername(),
+                    userKafka.getPassword(),
+                    id,
+                    userKafka.getEmail());
+
+            userCommadImp.saveUserToHbase(user);
+            userCommadImp.signup(user);
+        }
+
+        if (userKafka.getCode() == 1){
+
+            User user = new User(userKafka.getUsername(),
+                    userKafka.getPassword(),
+                    userKafka.getId(),
+                    userKafka.getEmail());
+
+            userCommadImp.update(user);
+            userCommadImp.updateUserHbase(user);
+        }
+
     }
 
 

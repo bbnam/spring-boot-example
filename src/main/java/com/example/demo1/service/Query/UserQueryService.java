@@ -5,8 +5,6 @@ import com.example.demo1.DTO.UserEmailDTO;
 import com.example.demo1.DTO.UserResponseDTO;
 import com.example.demo1.repository.IQueryRepository.IUserQueryRep;
 import com.example.demo1.service.SequenceGenerator;
-import com.google.gson.JsonObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,8 +12,11 @@ import java.util.List;
 @Service
 public class UserQueryService {
 
-    @Autowired
-    private IUserQueryRep iUserQueryRep;
+    private final IUserQueryRep iUserQueryRep;
+
+    public UserQueryService(IUserQueryRep iUserQueryRep) {
+        this.iUserQueryRep = iUserQueryRep;
+    }
 
     public List<UserDTO> findAll(){
         return iUserQueryRep.findAll();

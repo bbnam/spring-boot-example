@@ -1,7 +1,7 @@
 package com.example.demo1.service.Command;
 
 
-import com.example.demo1.DTO.BookRequestDTO;
+import com.example.demo1.DTO.BookKafka;
 import com.example.demo1.DTO.UserBookDTO;
 import com.example.demo1.model.Book;
 import com.example.demo1.repository.imp.Command.BookCommandImplements;
@@ -18,6 +18,9 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.TopicPartition;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -26,15 +29,18 @@ import java.util.Calendar;
 
 @Service
 public class BookCommandService {
+    private final KafkaTemplate<String, BookKafka> kafkaTemplate;
+
     private final BookCommandImplements bookCommandImplements;
     final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
-    public BookCommandService(BookCommandImplements bookCommandImplements) {
+    public BookCommandService(KafkaTemplate<String, BookKafka> kafkaTemplate, BookCommandImplements bookCommandImplements) {
+        this.kafkaTemplate = kafkaTemplate;
         this.bookCommandImplements = bookCommandImplements;
     }
 
 
-    public RestHighLevelClient test(){
+    public RestHighLevelClient test() {
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
 
@@ -45,15 +51,11 @@ public class BookCommandService {
                         ));
     }
 
-
-    public void addBook(Book book){
-        bookCommandImplements.addBook(book);
-    }
-    public void updateBook(Book book){
+    public void updateBook(Book book) {
         bookCommandImplements.updateBook(book);
     }
 
-    public void userBook(UserBookDTO userBookDTO){
+    public void userBook(UserBookDTO userBookDTO) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         Calendar cal = Calendar.getInstance();
         String currDate = sdf.format(cal.getTime());
@@ -61,7 +63,7 @@ public class BookCommandService {
         cal.add(Calendar.DAY_OF_MONTH, 7);
         String newDate = sdf.format(cal.getTime());
 
-        for(int i =0; i < userBookDTO.getBook().size(); i++){
+        for (int i = 0; i < userBookDTO.getBook().size(); i++) {
             try {
                 bookCommandImplements.userBook(
                         userBookDTO.getUser().getId(),
@@ -71,33 +73,60 @@ public class BookCommandService {
                 );
                 bookCommandImplements.updateAmount(userBookDTO.getBook().get(i).getId());
 
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
 
         }
     }
 
-    public void saveBookElasticsearch(Book book) throws  IOException {
+    public void saveBookElasticsearch(Book book) throws IOException {
         IndexRequest request = new IndexRequest("book");
         request.id(String.valueOf(book.getId()));
         System.out.println(new ObjectMapper().writeValueAsString(book));
         request.source(new ObjectMapper().writeValueAsString(book), XContentType.JSON);
         IndexResponse indexResponse = test().index(request, RequestOptions.DEFAULT);
+        System.out.println(indexResponse);
     }
 
-    public void saveBookHbase(BookRequestDTO book) throws Exception{
-        SequenceGenerator sequenceGenerator = new SequenceGenerator();
 
-        Book book1 = new Book((int) sequenceGenerator.nextId(), book.getName(), book.getPublisher(), book.getAmount());
-        bookCommandImplements.addBookToHbase(book1);
+
+    public void sendBookRequestToKafka(BookKafka bookKafka) {
+        kafkaTemplate.send("book_lib", 1, null, bookKafka);
     }
 
-    public void updateBookHbase(Book book) throws Exception{
+    @KafkaListener(groupId = "book_lib", topicPartitions = @TopicPartition(
+            topic = "book_lib",
+            partitions = "1"))
+    public void listen2(BookKafka bookKafka) throws Exception {
+        System.out.println(bookKafka);
+        if (bookKafka.getCode() == 0) {
 
-        bookCommandImplements.updateBookHbase(book);
+            SequenceGenerator sequenceGenerator = new SequenceGenerator();
+
+            long id = sequenceGenerator.nextId();
+
+            Book book = new Book(id, bookKafka.getName(), bookKafka.getPublisher(), bookKafka.getAmount());
+
+
+            bookCommandImplements.addBook(book);
+            bookCommandImplements.addBookToHbase(book);
+        }
+
+        if (bookKafka.getCode() == 1) {
+
+
+            Book book = new Book(bookKafka.getId(),
+                    bookKafka.getName(),
+                    bookKafka.getPublisher(),
+                    bookKafka.getAmount());
+
+            bookCommandImplements.updateBook(book);
+            bookCommandImplements.updateBookHbase(book);
+        }
+
     }
+
 
 
 

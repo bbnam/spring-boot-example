@@ -41,7 +41,7 @@ public class BookCommandImplements implements IBookCommandRep {
     }
 
     @Override
-    public int userBook(int user_id, int book_id, String time_borrowed, String time_out) {
+    public int userBook(long user_id, long book_id, String time_borrowed, String time_out) {
 
         return jdbcTemplate.update(
                 "INSERT INTO `mydb`.`user_has_book` (`user_id`, `book_id`, `time_borrowed`, `time_out`) VALUES (?, ?, ?, ?);",
@@ -52,7 +52,7 @@ public class BookCommandImplements implements IBookCommandRep {
     }
 
     @Override
-    public int updateAmount(int id) {
+    public int updateAmount(long id) {
         return jdbcTemplate.update("UPDATE `mydb`.`book` SET `amount` = amount - 1 WHERE (`id` = ?);",  id);
     }
 

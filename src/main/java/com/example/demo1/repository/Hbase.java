@@ -7,10 +7,9 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.tomcat.util.buf.UEncoder;
+
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -82,11 +81,13 @@ public class Hbase {
     public void UpdateData(TableName tableName, Put put) throws Exception{
         Configuration conf = HBaseConfiguration.create();
 
-        try (Connection connection = ConnectionFactory.createConnection(conf);
-             Table table = connection.getTable(tableName))
-        {
-            table.put(put);
-        }
+        Connection connection = ConnectionFactory.createConnection(conf);
+
+        Table table = connection.getTable(tableName);
+
+        table.put(put);
+
+        table.close();
     }
 
 }

@@ -1,9 +1,7 @@
 package com.example.demo1.controller.Command;
 
 
-import com.example.demo1.DTO.BookRequestDTO;
-import com.example.demo1.DTO.MessageResponseDTO;
-import com.example.demo1.DTO.UserBookDTO;
+import com.example.demo1.DTO.*;
 import com.example.demo1.model.Book;
 import com.example.demo1.model.Message;
 import com.example.demo1.service.Command.BookCommandService;
@@ -23,13 +21,35 @@ public class BookCommandController {
     }
 
     @PostMapping("/AddBook")
-    public void AddBook(@RequestBody Book book){
-        bookCommandService.addBook(book);
+    public MessageResponseDTO AddBook(@RequestBody BookRequestDTO bookRequestDTO){
+        BookKafka bookKafka = new BookKafka(0,
+                bookRequestDTO.getName(),
+                bookRequestDTO.getPublisher(),
+                bookRequestDTO.getAmount(),
+                0);
+
+        bookCommandService.sendBookRequestToKafka(bookKafka);
+
+        Message message = new Message("Thêm sách thành công!");
+
+        return new MessageResponseDTO(0,200, message);
     }
 
+
     @PutMapping("/UpdateBook")
-    public void UpdateBook(@RequestBody Book book){
+    public MessageResponseDTO UpdateBook(@RequestBody Book book){
         bookCommandService.updateBook(book);
+        BookKafka bookKafka = new BookKafka(book.getId(),
+                book.getName(),
+                book.getPublisher(),
+                book.getAmount(),
+                1);
+
+        bookCommandService.sendBookRequestToKafka(bookKafka);
+
+        Message message = new Message("Cập nhập sách thành công!");
+
+        return new MessageResponseDTO(0,200, message);
     }
 
     @PostMapping("/userHasBook")
@@ -43,14 +63,4 @@ public class BookCommandController {
         bookCommandService.saveBookElasticsearch(book);
     }
 
-    @PostMapping("/HbaseBook")
-    public void saveBookHbase(@RequestBody BookRequestDTO book) throws Exception{
-        bookCommandService.saveBookHbase(book);
-    }
-    @PostMapping("/bookUpdateHbase")
-    public MessageResponseDTO updateUserHbase(@RequestBody Book book) throws Exception{
-        bookCommandService.updateBookHbase(book);
-        Message message = new Message("Cập nhập thông tin thành công!");
-        return new MessageResponseDTO(0,200, message);
-    }
 }

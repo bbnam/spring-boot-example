@@ -13,12 +13,7 @@ public class User {
     private String username;
     private String password;
 
-    private int id;
+    private long id;
     private String email;
 
-    public User(String username, String email, int id) {
-        this.username = username;
-        this.email = email;
-        this.id = id;
-    }
 }

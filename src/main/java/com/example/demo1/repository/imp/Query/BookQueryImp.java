@@ -92,8 +92,7 @@ public class BookQueryImp implements IBookQueryRep{
         scan.addColumn(Bytes.toBytes("book"), Bytes.toBytes("amount"));
 
         Hbase hbase = new Hbase();
-        List<Book> bookList = hbase.ScanBookTable(TableName.valueOf("book_lib"), scan);
-        return bookList;
+        return hbase.ScanBookTable(TableName.valueOf("book_lib"), scan);
     }
 
     private List<Book> getBooks(SearchRequest searchRequest) {

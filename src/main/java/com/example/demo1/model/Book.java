@@ -9,12 +9,12 @@ import org.springframework.data.elasticsearch.annotations.Document;
 @Document(indexName = "")
 public class Book {
 
-    private int  id;
+    private long  id;
     private String name;
     private String publisher;
     private int amount;
 
-    public Book(int id, String name, String publisher, int amount ){
+    public Book(long id, String name, String publisher, int amount ){
         this.id = id;
         this.name = name;
         this.publisher = publisher;

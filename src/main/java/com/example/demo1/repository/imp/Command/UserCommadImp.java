@@ -24,10 +24,11 @@ public class UserCommadImp implements IUserCommandRep {
 
     @Override
     public void update(User user) {
-         jdbcTemplate.update("UPDATE user SET email = ?, password = ? WHERE (username = ?);",
+         jdbcTemplate.update("UPDATE user SET username = ?, email = ?, password = ? WHERE (id = ?);",
+                 user.getUsername(),
                  user.getEmail(),
                  user.getPassword(),
-                 user.getUsername());
+                 user.getId());
     }
 
     @Override
@@ -46,7 +47,6 @@ public class UserCommadImp implements IUserCommandRep {
         try (Connection connection = ConnectionFactory.createConnection(conf);
              Table table = connection.getTable(TableName.valueOf("book_lib")))
         {
-            System.out.println("Table: " + table.toString());
 
             String row_key = String.valueOf(user.getId());
 
@@ -72,10 +72,14 @@ public class UserCommadImp implements IUserCommandRep {
 
     @Override
     public void updateUserHbase(User user) throws Exception {
-        Put put = new Put(Bytes.toBytes(user.getId()));
-        put.addColumn(Bytes.toBytes("book"), Bytes.toBytes("username"), Bytes.toBytes(user.getUsername()));
-        put.addColumn(Bytes.toBytes("book"), Bytes.toBytes("password"), Bytes.toBytes(user.getPassword()));
-        put.addColumn(Bytes.toBytes("book"), Bytes.toBytes("email"), Bytes.toBytes(user.getEmail()));
+
+        String row_key = String.valueOf(user.getId());
+
+        Put put = new Put(Bytes.toBytes(row_key));
+
+        put.addColumn(Bytes.toBytes("user"), Bytes.toBytes("username"), Bytes.toBytes(user.getUsername()));
+        put.addColumn(Bytes.toBytes("user"), Bytes.toBytes("password"), Bytes.toBytes(user.getPassword()));
+        put.addColumn(Bytes.toBytes("user"), Bytes.toBytes("email"), Bytes.toBytes(user.getEmail()));
 
         Hbase hbase =new Hbase();
         hbase.UpdateData(TableName.valueOf("book_lib"), put);

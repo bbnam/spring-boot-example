@@ -2,6 +2,7 @@ package com.example.demo1.controller.Command;
 
 
 import com.example.demo1.DTO.MessageResponseDTO;
+import com.example.demo1.DTO.UserKafka;
 import com.example.demo1.DTO.UserRequestDTO;
 import com.example.demo1.model.Message;
 import com.example.demo1.model.User;
@@ -20,10 +21,14 @@ public class UserCommandController {
         this.userCommandService = userCommandService;
     }
 
-    @PostMapping("/PostUser")
-    public void updateUser(@RequestBody User user){
-        userCommandService.update_user(user);
+    @PostMapping("/updateUser")
+    public MessageResponseDTO updateUser(@RequestBody User user){
+        UserKafka userKafka = new UserKafka(user.getId(), user.getPassword(), user.getUsername(), user.getEmail(), 1);
 
+        userCommandService.sendUserRequestToKafka(userKafka);
+
+        Message message = new Message("Cập nhập thông tin thành công!");
+        return new MessageResponseDTO(0,200, message);
     }
 
     @PostMapping("/ElasticsearchUser")
@@ -32,16 +37,15 @@ public class UserCommandController {
     }
 
     @PostMapping("/signUp")
-    public void saveUserHbase (@RequestBody UserRequestDTO user) throws Exception {
-        userCommandService.sendUserRequestToKafka(user);
-    }
+    public MessageResponseDTO saveUser (@RequestBody UserRequestDTO user) {
+        UserKafka userKafka = new UserKafka(0, user.getPassword(), user.getUsername(), user.getEmail(), 0);
+        userCommandService.sendUserRequestToKafka(userKafka);
 
-    @PostMapping("/bookHbase")
-    public MessageResponseDTO updateUserHbase(@RequestBody User user) throws Exception{
-        userCommandService.updateUserHbase(user);
-        Message message = new Message("Cập nhập thông tin thành công!");
+        Message message = new Message("Đăng ký thành công!");
+
         return new MessageResponseDTO(0,200, message);
     }
+
 
 }
 

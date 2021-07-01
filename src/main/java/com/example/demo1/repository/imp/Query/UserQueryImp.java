@@ -4,13 +4,8 @@ import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.repository.Hbase;
 import com.example.demo1.repository.IQueryRepository.IUserQueryRep;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.CompareOperator;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -44,12 +39,11 @@ public class UserQueryImp implements IUserQueryRep {
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("admin", "rIOwtIeDGQiPjWQbUtHm"));
 
-        RestHighLevelClient client = new RestHighLevelClient(
+        return new RestHighLevelClient(
                 RestClient.builder(new HttpHost("https://10.3.104.30/", 9200, "http"))
                         .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                                 .setDefaultCredentialsProvider(credentialsProvider)
                         ));
-        return client;
     }
 
     public UserQueryImp(ObjectMapper objectMapper, JdbcTemplate jdbcTemplate) {
@@ -99,9 +93,8 @@ public class UserQueryImp implements IUserQueryRep {
         scan.addColumn(Bytes.toBytes("user"), Bytes.toBytes("email"));
 
         Hbase hbase = new Hbase();
-        List<UserDTO> userDTOList = hbase.ScanUserTable(TableName.valueOf("book_lib"), scan);
 
-        return userDTOList;
+        return hbase.ScanUserTable(TableName.valueOf("book_lib"), scan);
     }
 
 }
