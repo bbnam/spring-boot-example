@@ -4,6 +4,7 @@ package com.example.demo1.controller.Command;
 import com.example.demo1.DTO.MessageResponseDTO;
 import com.example.demo1.DTO.UserKafka;
 import com.example.demo1.DTO.UserRequestDTO;
+import com.example.demo1.model.Book;
 import com.example.demo1.model.Message;
 import com.example.demo1.model.User;
 import com.example.demo1.service.Command.UserCommandService;
@@ -22,7 +23,7 @@ public class UserCommandController {
     }
 
     @PostMapping("/updateUser")
-    public MessageResponseDTO updateUser(@RequestBody User user){
+    public MessageResponseDTO updateUser(@RequestBody User user) throws Exception{
         UserKafka userKafka = new UserKafka(user.getId(), user.getPassword(), user.getUsername(), user.getEmail(), 1);
 
         userCommandService.sendUserRequestToKafka(userKafka);
@@ -37,7 +38,7 @@ public class UserCommandController {
     }
 
     @PostMapping("/signUp")
-    public MessageResponseDTO saveUser (@RequestBody UserRequestDTO user) {
+    public MessageResponseDTO saveUser (@RequestBody UserRequestDTO user) throws Exception{
         UserKafka userKafka = new UserKafka(0, user.getPassword(), user.getUsername(), user.getEmail(), 0);
         userCommandService.sendUserRequestToKafka(userKafka);
 

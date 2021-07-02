@@ -3,6 +3,7 @@ package com.example.demo1.service.Command;
 
 import com.example.demo1.DTO.BookKafka;
 import com.example.demo1.DTO.UserBookDTO;
+import com.example.demo1.DTO.UserBookRequestDTO;
 import com.example.demo1.model.Book;
 import com.example.demo1.repository.imp.Command.BookCommandImplements;
 import com.example.demo1.service.SequenceGenerator;
@@ -18,18 +19,24 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class BookCommandService {
     private final KafkaTemplate<String, BookKafka> kafkaTemplate;
+
 
     private final BookCommandImplements bookCommandImplements;
     final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -55,29 +62,29 @@ public class BookCommandService {
         bookCommandImplements.updateBook(book);
     }
 
-    public void userBook(UserBookDTO userBookDTO) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-        Calendar cal = Calendar.getInstance();
-        String currDate = sdf.format(cal.getTime());
+    public int userBook(UserBookRequestDTO userBookRequestDTO) {
+        LocalDateTime time_now = LocalDateTime.now();
+        DateTimeFormatter format_time = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
-        cal.add(Calendar.DAY_OF_MONTH, 7);
-        String newDate = sdf.format(cal.getTime());
+        String time_format = time_now.format(format_time);
 
-        for (int i = 0; i < userBookDTO.getBook().size(); i++) {
-            try {
-                bookCommandImplements.userBook(
-                        userBookDTO.getUser().getId(),
-                        userBookDTO.getBook().get(i).getId(),
-                        currDate,
-                        newDate
-                );
-                bookCommandImplements.updateAmount(userBookDTO.getBook().get(i).getId());
-
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-
+        if (time_format.compareTo(userBookRequestDTO.getTime_back()) > 0){
+            return 0;
         }
+        bookCommandImplements.updateAmount(userBookRequestDTO.getBook().getId(),
+                userBookRequestDTO.getBook().getAmount() );
+
+        bookCommandImplements.userBook(
+                new UserBookDTO(
+                        userBookRequestDTO.getUserDTO(),
+                        userBookRequestDTO.getBook(),
+                        time_format ,
+                        userBookRequestDTO.getTime_back(),
+                        0));
+
+        return 1;
+
+
     }
 
     public void saveBookElasticsearch(Book book) throws IOException {
@@ -90,13 +97,12 @@ public class BookCommandService {
     }
 
 
-
     public void sendBookRequestToKafka(BookKafka bookKafka) {
-        kafkaTemplate.send("book_lib", 1, null, bookKafka);
+        kafkaTemplate.send("book_lib_test", 1, null, bookKafka);
     }
 
-    @KafkaListener(groupId = "book_lib", topicPartitions = @TopicPartition(
-            topic = "book_lib",
+    @KafkaListener(groupId = "book_lib_test", topicPartitions = @TopicPartition(
+            topic = "book_lib_test",
             partitions = "1"))
     public void listen2(BookKafka bookKafka) throws Exception {
         System.out.println(bookKafka);

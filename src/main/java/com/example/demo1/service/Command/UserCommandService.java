@@ -2,6 +2,7 @@ package com.example.demo1.service.Command;
 
 
 import com.example.demo1.DTO.UserKafka;
+import com.example.demo1.model.Book;
 import com.example.demo1.model.User;
 import com.example.demo1.repository.imp.Command.UserCommadImp;
 import com.example.demo1.service.SequenceGenerator;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -33,7 +35,6 @@ public class UserCommandService {
 
     @Autowired
     private final KafkaTemplate<String, UserKafka> kafkaTemplate;
-
     final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
 
@@ -50,11 +51,11 @@ public class UserCommandService {
 
 
 
-    public UserCommandService(UserCommadImp userCommadImp, KafkaTemplate<String, UserKafka> kafkaTemplate
-                              ) {
+    public UserCommandService(UserCommadImp userCommadImp, KafkaTemplate<String, UserKafka> kafkaTemplate) {
         this.userCommadImp = userCommadImp;
 
         this.kafkaTemplate = kafkaTemplate;
+
     }
 
 //    @Bean
@@ -123,9 +124,10 @@ public class UserCommandService {
     }
 
 
-    public void sendUserRequestToKafka(UserKafka user){
+    public void sendUserRequestToKafka(UserKafka user) throws Exception {
         kafkaTemplate.send("book_lib",0, null , user);
     }
+
 
     @KafkaListener(groupId = "book_lib", topicPartitions = @TopicPartition(
             topic = "book_lib",
@@ -159,6 +161,7 @@ public class UserCommandService {
         }
 
     }
+
 
 
 

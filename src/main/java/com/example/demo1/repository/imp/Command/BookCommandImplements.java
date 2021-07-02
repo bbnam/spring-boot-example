@@ -1,11 +1,11 @@
 package com.example.demo1.repository.imp.Command;
 
 
+import com.example.demo1.DTO.UserBookDTO;
 import com.example.demo1.model.Book;
 import com.example.demo1.model.User;
 import com.example.demo1.repository.Hbase;
 import com.example.demo1.repository.ICommandRepository.IBookCommandRep;
-import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
@@ -26,7 +26,8 @@ public class BookCommandImplements implements IBookCommandRep {
     @Override
     public int addBook(Book book) {
         return jdbcTemplate.update(
-                "INSERT INTO `mydb`.`book` (`name`, `publisher`, `amount`) VALUES (?, ?, ?);",
+                "INSERT INTO `mydb`.`book` (`id`, `name`, `publisher`, `amount`) VALUES (?, ?, ?, ?);",
+                book.getId(),
                 book.getName(),
                 book.getPublisher(),
                 book.getAmount());
@@ -34,26 +35,35 @@ public class BookCommandImplements implements IBookCommandRep {
 
     @Override
     public int updateBook(Book book) {
-        return jdbcTemplate.update("UPDATE `mydb`.`book` SET `publisher` = ?, `amount` = ? WHERE (`name` = ?);",
+        return jdbcTemplate.update(
+                "UPDATE `mydb`.`book` SET `name`=?, `publisher` = ?, `amount` = ? WHERE (`id` = ?);",
+                book.getName(),
                 book.getPublisher(),
                 book.getAmount(),
-                book.getName());
+                book.getId());
     }
 
     @Override
-    public int userBook(long user_id, long book_id, String time_borrowed, String time_out) {
+    public int userBook(UserBookDTO userBookDTO) {
+
+//        System.out.println(userBookDTO);
 
         return jdbcTemplate.update(
-                "INSERT INTO `mydb`.`user_has_book` (`user_id`, `book_id`, `time_borrowed`, `time_out`) VALUES (?, ?, ?, ?);",
-                user_id,
-                book_id,
-                time_borrowed,
-                time_out);
+                "INSERT INTO `mydb`.`user_has_book` " +
+                        "(`user_id`, `book_id`, `time_borrowed`, `time_back`, `check`, `quantity`) " +
+                        "VALUES (?, ?, ?, ?, ?, ?);",
+                userBookDTO.getUserDTO().getId(),
+                userBookDTO.getBook().getId(),
+                userBookDTO.getTime_borrowed(),
+                userBookDTO.getTime_back(),
+                userBookDTO.getStatus(),
+                userBookDTO.getBook().getAmount()
+        );
     }
 
     @Override
-    public int updateAmount(long id) {
-        return jdbcTemplate.update("UPDATE `mydb`.`book` SET `amount` = amount - 1 WHERE (`id` = ?);",  id);
+    public int updateAmount(long id, int amount) {
+        return jdbcTemplate.update("UPDATE `mydb`.`book` SET `amount` = amount - ? WHERE (`id` = ?);",  amount, id);
     }
 
     @Override
@@ -104,9 +114,7 @@ public class BookCommandImplements implements IBookCommandRep {
             table = connection.getTable(TableName.valueOf("book_lib"));
             System.out.println("Table: " + table.toString());
 
-            TimeStamp timeStamp = new TimeStamp(System.currentTimeMillis());
-
-            String row_key =timeStamp.toString();
+            String row_key = String.valueOf(book.getId());
 
             Put p = new Put(Bytes.toBytes(row_key));
 

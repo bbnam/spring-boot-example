@@ -1,6 +1,7 @@
 package com.example.demo1.repository.imp.Query;
 
 
+import com.example.demo1.DTO.UserBookResponseDTO;
 import com.example.demo1.DTO.UserDTO;
 import com.example.demo1.model.Book;
 import com.example.demo1.repository.Hbase;
@@ -93,6 +94,30 @@ public class BookQueryImp implements IBookQueryRep{
 
         Hbase hbase = new Hbase();
         return hbase.ScanBookTable(TableName.valueOf("book_lib"), scan);
+    }
+
+    @Override
+    public List<UserBookResponseDTO> getUserBook() {
+
+        return jdbcTemplate.query("" +
+                        "SELECT user_has_book.*, user.*, book.* " +
+                        "FROM user_has_book  " +
+                        "INNER JOIN user ON user_has_book.user_id = user.id  " +
+                        "INNER JOIN book on user_has_book.book_id = book.id " +
+                        "AND user_has_book.check = 0",
+                (rs, rowNum) -> new UserBookResponseDTO(
+                        new UserDTO(
+                                rs.getString("user_id"),
+                                rs.getString("username"),
+                                rs.getString("email")
+                        ),
+                        new Book(
+                                rs.getInt("book_id"),
+                                rs.getString("name"),
+                                rs.getString("publisher"),
+                                rs.getInt("quantity")),
+                        rs.getString("time_borrowed"),
+                        rs.getString("time_back")));
     }
 
     private List<Book> getBooks(SearchRequest searchRequest) {

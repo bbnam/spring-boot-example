@@ -27,7 +27,7 @@ public class BookCommandController {
                 bookRequestDTO.getPublisher(),
                 bookRequestDTO.getAmount(),
                 0);
-
+        System.out.println(bookKafka);
         bookCommandService.sendBookRequestToKafka(bookKafka);
 
         Message message = new Message("Thêm sách thành công!");
@@ -53,8 +53,16 @@ public class BookCommandController {
     }
 
     @PostMapping("/userHasBook")
-    public void UserHasBook(@RequestBody UserBookDTO userBookDTO){
-        bookCommandService.userBook(userBookDTO);
+    public MessageResponseDTO UserHasBook(@RequestBody UserBookRequestDTO userBookRequestDTO){
+        if (bookCommandService.userBook(userBookRequestDTO) == 0){
+            Message message = new Message("Thời gian không hợp lệ");
+
+            return new MessageResponseDTO(0,200, message);
+        }
+
+        Message message = new Message("Mượn sách thành công!");
+
+        return new MessageResponseDTO(0,200, message);
     }
 
 
@@ -62,5 +70,7 @@ public class BookCommandController {
     public void test(@RequestBody Book book) throws IOException {
         bookCommandService.saveBookElasticsearch(book);
     }
+
+
 
 }
